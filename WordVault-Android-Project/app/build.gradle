@@ -10,13 +10,23 @@ android {
         applicationId "com.shivanshu.wordvault"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('wordvault.keystore')
+            storePassword 'wordvault123'
+            keyAlias 'wordvault'
+            keyPassword 'wordvault123'
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
         }
     }
 
