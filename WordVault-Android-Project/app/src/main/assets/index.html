@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1117">
+<title>WordVault — Daily 10</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#181c26; --card2:#1f2430; --border:#2a3040;
+    --text:#e8eaf0; --muted:#8b93a7; --accent:#f5b942; --accent2:#5eead4;
+    --danger:#f87171; --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding-bottom:80px}
+  header{padding:18px 20px 10px;display:flex;justify-content:space-between;align-items:center}
+  header h1{font-size:1.25rem;letter-spacing:.5px}
+  header h1 span{color:var(--accent)}
+  .today-pill{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:.85rem;color:var(--muted)}
+  .today-pill b{color:var(--accent2)}
+  .today-pill.done b{color:var(--accent)}
+  main{padding:8px 16px;max-width:560px;margin:0 auto}
+  .tab{display:none}
+  .tab.active{display:block;animation:fade .18s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  label{display:block;font-size:.78rem;color:var(--muted);margin:14px 2px 6px;text-transform:uppercase;letter-spacing:1px}
+  input[type=text],textarea{
+    width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    color:var(--text);padding:13px 15px;font-size:1rem;outline:none;font-family:inherit;
+  }
+  input:focus,textarea:focus{border-color:var(--accent)}
+  textarea{resize:vertical;min-height:70px;line-height:1.45}
+  .hint{font-size:.78rem;color:var(--muted);margin:6px 2px;min-height:18px}
+  .hint.ok{color:var(--accent2)} .hint.err{color:var(--danger)}
+  .pos-tag{display:inline-block;background:var(--card2);border:1px solid var(--border);color:var(--accent2);font-size:.72rem;padding:3px 10px;border-radius:12px;margin:6px 4px 0 0}
+
+  button{font-family:inherit;cursor:pointer;border:none}
+  .btn{width:100%;padding:15px;border-radius:var(--radius);font-size:1.05rem;font-weight:700;margin-top:18px;background:var(--accent);color:#1a1405}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--border);font-weight:500}
+  .btn.small{width:auto;padding:9px 18px;font-size:.85rem;margin:0}
+
+  .searchbar{display:flex;gap:8px;margin:10px 0 14px}
+  .searchbar input{flex:1}
+  .sortbtn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);padding:0 16px;font-size:.85rem;white-space:nowrap}
+  .count-line{font-size:.82rem;color:var(--muted);margin:0 2px 10px}
+
+  .wcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+  .wcard .wtop{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .wcard .wname{font-size:1.05rem;font-weight:700;color:var(--accent);text-transform:capitalize}
+  .wcard .wdate{font-size:.72rem;color:var(--muted)}
+  .wcard .wbody{display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+  .wcard.open .wbody{display:block}
+  .wbody p{font-size:.92rem;line-height:1.5;margin-bottom:8px}
+  .wbody .lbl{color:var(--accent2);font-size:.72rem;text-transform:uppercase;letter-spacing:1px}
+  .wbody .story{color:#c9cede;font-style:italic}
+  .del{background:none;color:var(--danger);font-size:.78rem;padding:4px 0;opacity:.8}
+  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:.95rem;line-height:1.6}
+
+  /* Quiz */
+  .qcard{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:22px;min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:26px;text-align:center;margin-top:14px;cursor:pointer}
+  .qword{font-size:2rem;font-weight:800;color:var(--accent);text-transform:capitalize}
+  .qtap{color:var(--muted);font-size:.8rem;margin-top:16px}
+  .qmeaning{font-size:1.02rem;line-height:1.55;margin-top:8px}
+  .qstory{font-style:italic;color:#c9cede;font-size:.92rem;line-height:1.5;margin-top:14px}
+  .qbtns{display:flex;gap:10px;margin-top:16px}
+  .qbtns .btn{margin-top:0}
+  .qbtns .know{background:var(--accent2);color:#062621}
+  .qscore{text-align:center;color:var(--muted);font-size:.85rem;margin-top:12px}
+
+  nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;padding:6px 0 max(10px, env(safe-area-inset-bottom))}
+  nav button{flex:1;background:none;color:var(--muted);font-size:.75rem;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0}
+  nav button .ico{font-size:1.3rem}
+  nav button.on{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Word<span>Vault</span></h1>
+  <div class="today-pill" id="todayPill">Today: <b>0</b>/10</div>
+</header>
+
+<main>
+  <!-- ADD TAB -->
+  <section class="tab active" id="tab-add">
+    <label>New word</label>
+    <input type="text" id="wordInput" placeholder="Type a word e.g. serendipity" autocomplete="off">
+    <div class="hint" id="fetchHint"></div>
+    <div id="posBox"></div>
+    <label>Meaning</label>
+    <textarea id="meaningInput" placeholder="Meaning appears here automatically — edit it in your own words"></textarea>
+    <label>Small story / how you'll remember it</label>
+    <textarea id="storyInput" placeholder="A short story, sentence, or memory hook for this word"></textarea>
+    <button class="btn" id="saveBtn">Save Word</button>
+  </section>
+
+  <!-- WORDS TAB -->
+  <section class="tab" id="tab-words">
+    <div class="searchbar">
+      <input type="text" id="searchInput" placeholder="Search your words...">
+      <button class="sortbtn" id="sortBtn">Newest</button>
+    </div>
+    <div class="count-line" id="countLine"></div>
+    <div id="wordList"></div>
+  </section>
+
+  <!-- QUIZ TAB -->
+  <section class="tab" id="tab-quiz">
+    <div id="quizArea"></div>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-tab="add"><span class="ico">✍️</span>Add</button>
+  <button data-tab="words"><span class="ico">📚</span>My Words</button>
+  <button data-tab="quiz"><span class="ico">🎯</span>Quiz</button>
+</nav>
+
+<script>
+const KEY='wordvault_v1';
+let store=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{words:[]}}catch(e){return{words:[]}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(store))}
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const $=id=>document.getElementById(id);
+
+/* ---------- header counter ---------- */
+function renderToday(){
+  const n=store.words.filter(w=>w.date===todayStr()).length;
+  const pill=$('todayPill');
+  pill.innerHTML='Today: <b>'+n+'</b>/10'+(n>=10?' 🎉':'');
+  pill.classList.toggle('done',n>=10);
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('on');
+    $('tab-'+b.dataset.tab).classList.add('active');
+    if(b.dataset.tab==='words')renderList();
+    if(b.dataset.tab==='quiz')startQuiz();
+  };
+});
+
+/* ---------- auto-suggest meaning ---------- */
+let fetchTimer=null,lastFetched='';
+$('wordInput').addEventListener('input',()=>{
+  clearTimeout(fetchTimer);
+  const w=$('wordInput').value.trim().toLowerCase();
+  if(w.length<2){$('fetchHint').textContent='';return}
+  const dup=store.words.find(x=>x.w===w);
+  if(dup){$('fetchHint').textContent='⚠️ Already saved on '+dup.date+' — check My Words';$('fetchHint').className='hint err';return}
+  fetchTimer=setTimeout(()=>fetchMeaning(w),700);
+});
+async function fetchMeaning(w){
+  if(w===lastFetched)return;
+  $('fetchHint').textContent='Looking up meaning…';$('fetchHint').className='hint';
+  try{
+    const r=await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(w));
+    if(!r.ok)throw 0;
+    const data=await r.json();
+    const entry=data[0];
+    if($('wordInput').value.trim().toLowerCase()!==w)return; // user typed something else meanwhile
+    lastFetched=w;
+    const parts=[],posSet=new Set(),examples=[],syns=[];
+    (entry.meanings||[]).slice(0,3).forEach(m=>{
+      posSet.add(m.partOfSpeech);
+      const d=m.definitions&&m.definitions[0];
+      if(d)parts.push('('+m.partOfSpeech+') '+d.definition);
+      (m.definitions||[]).forEach(def=>{if(def.example&&examples.length<2)examples.push(def.example)});
+      (m.synonyms||[]).slice(0,3).forEach(s=>{if(syns.length<3&&!syns.includes(s))syns.push(s)});
+    });
+    if(!$('meaningInput').value.trim())$('meaningInput').value=parts.join('\n');
+    if(!$('storyInput').value.trim()){
+      let story='';
+      if(examples.length)story=examples.map(e=>'"'+e+'"').join(' ');
+      if(syns.length)story+=(story?'\n':'')+'Similar words: '+syns.join(', ');
+      if(story)$('storyInput').value=story;
+    }
+    $('posBox').innerHTML=[...posSet].map(p=>'<span class="pos-tag">'+p+'</span>').join('')+(entry.phonetic?'<span class="pos-tag">'+entry.phonetic+'</span>':'');
+    $('fetchHint').textContent='✓ Meaning found — edit it in your own words';$('fetchHint').className='hint ok';
+  }catch(e){
+    $('fetchHint').textContent='Couldn\'t fetch meaning (offline or word not found) — type it manually';
+    $('fetchHint').className='hint err';
+  }
+}
+
+/* ---------- save ---------- */
+$('saveBtn').onclick=()=>{
+  const w=$('wordInput').value.trim().toLowerCase();
+  const meaning=$('meaningInput').value.trim();
+  const story=$('storyInput').value.trim();
+  if(!w){alert('Type a word first.');return}
+  if(!meaning){alert('Add a meaning — auto-fetched or your own.');return}
+  if(store.words.find(x=>x.w===w)){alert('"'+w+'" is already saved. Find it in My Words.');return}
+  store.words.unshift({w,meaning,story,date:todayStr(),ts:Date.now(),miss:0});
+  save();renderToday();
+  $('wordInput').value='';$('meaningInput').value='';$('storyInput').value='';
+  $('posBox').innerHTML='';lastFetched='';
+  const n=store.words.filter(x=>x.date===todayStr()).length;
+  $('fetchHint').textContent='✓ Saved! '+(n>=10?'Daily 10 complete 🎉':(10-n)+' more to hit today\'s 10');
+  $('fetchHint').className='hint ok';
+  $('wordInput').focus();
+};
+
+/* ---------- list / search ---------- */
+let sortMode='new';
+$('sortBtn').onclick=()=>{sortMode=sortMode==='new'?'az':'new';$('sortBtn').textContent=sortMode==='new'?'Newest':'A–Z';renderList();};
+$('searchInput').addEventListener('input',renderList);
+function renderList(){
+  const q=$('searchInput').value.trim().toLowerCase();
+  let list=store.words.filter(x=>!q||x.w.includes(q)||x.meaning.toLowerCase().includes(q));
+  list=[...list].sort((a,b)=>sortMode==='az'?a.w.localeCompare(b.w):b.ts-a.ts);
+  $('countLine').textContent=store.words.length+' words saved'+(q?' · '+list.length+' match':'');
+  if(!list.length){$('wordList').innerHTML='<div class="empty">'+(store.words.length?'No matches for "'+q+'"':'No words yet.<br>Add your first 10 today! ✍️')+'</div>';return}
+  $('wordList').innerHTML=list.map(x=>
+    '<div class="wcard" data-w="'+x.w+'">'+
+      '<div class="wtop"><span class="wname">'+esc(x.w)+'</span><span class="wdate">'+x.date+'</span></div>'+
+      '<div class="wbody">'+
+        '<p><span class="lbl">Meaning</span><br>'+esc(x.meaning).replace(/\n/g,'<br>')+'</p>'+
+        (x.story?'<p><span class="lbl">Story</span><br><span class="story">'+esc(x.story)+'</span></p>':'')+
+        '<button class="del">Delete</button>'+
+      '</div>'+
+    '</div>').join('');
+  document.querySelectorAll('.wcard .wtop').forEach(t=>t.onclick=()=>t.parentElement.classList.toggle('open'));
+  document.querySelectorAll('.wcard .del').forEach(d=>d.onclick=e=>{
+    const card=e.target.closest('.wcard'),w=card.dataset.w;
+    if(confirm('Delete "'+w+'"?')){store.words=store.words.filter(x=>x.w!==w);save();renderToday();renderList();}
+  });
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ---------- quiz ---------- */
+let deck=[],qi=0,knew=0,seen=0;
+function startQuiz(){
+  if(store.words.length<3){$('quizArea').innerHTML='<div class="empty">Add at least 3 words to start the quiz 🎯</div>';return}
+  // words you missed before appear twice as often
+  deck=[...store.words];
+  store.words.filter(x=>x.miss>0).forEach(x=>deck.push(x));
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
+  // remove consecutive duplicates
+  deck=deck.filter((x,i)=>i===0||deck[i-1].w!==x.w);
+  qi=0;knew=0;seen=0;
+  showCard();
+}
+function showCard(){
+  if(qi>=deck.length){
+    $('quizArea').innerHTML='<div class="empty">Round complete! 🎉<br>You knew <b style="color:var(--accent2)">'+knew+'</b> of '+seen+' cards.</div><button class="btn" onclick="startQuiz()">Go Again</button>';
+    return;
+  }
+  const c=deck[qi];
+  $('quizArea').innerHTML=
+    '<div class="qcard" id="qc"><div class="qword">'+esc(c.w)+'</div><div class="qtap">tap card to reveal meaning</div></div>'+
+    '<div class="qscore">Card '+(qi+1)+' of '+deck.length+' · Knew '+knew+'/'+seen+'</div>';
+  $('qc').onclick=()=>flip(c);
+}
+function flip(c){
+  $('qc').onclick=null;
+  $('qc').innerHTML='<div class="qword" style="font-size:1.3rem">'+esc(c.w)+'</div>'+
+    '<div class="qmeaning">'+esc(c.meaning).replace(/\n/g,'<br>')+'</div>'+
+    (c.story?'<div class="qstory">'+esc(c.story)+'</div>':'');
+  $('quizArea').insertAdjacentHTML('beforeend',
+    '<div class="qbtns"><button class="btn know" onclick="answer(true)">✓ Knew it</button><button class="btn ghost" onclick="answer(false)">↻ Revise again</button></div>');
+}
+function answer(ok){
+  const c=deck[qi];seen++;
+  const real=store.words.find(x=>x.w===c.w);
+  if(real){real.miss=ok?Math.max(0,(real.miss||0)-1):(real.miss||0)+1;save();}
+  if(ok)knew++;
+  qi++;showCard();
+}
+
+renderToday();
+</script>
+</body>
+</html>
