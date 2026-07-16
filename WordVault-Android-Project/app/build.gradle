@@ -16,7 +16,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile file('wordvault.keystore')
+            storeFile file('../wordvault.keystore')
             storePassword 'wordvault123'
             keyAlias 'wordvault'
             keyPassword 'wordvault123'
